@@ -10,8 +10,12 @@ import (
 // Any file that already exists locally is skipped.
 func SyncAll() error {
 	defer trace("SyncAll")()
+    xkcd := XKCD{}
 
-	xkcd, err := GetLatestComic()
+	err := xkcd.GetLatestComic()
+
+	fmt.Println("3. &xkcd: ", &xkcd.Number)
+
 
 	if err != nil {
 		return fmt.Errorf("xkcd: sync all: %v\n", err)
@@ -50,7 +54,7 @@ func IndexFiles(xkcd *XKCD, ls *LocalStorage) error {
 
 		var imageContent []byte
 
-		if imageContent, err = DownloadImage(xkcd.ImageURL); err != nil {
+		if imageContent, err = xkcd.DownloadImage(); err != nil {
 			ShowVerbose(fmt.Sprintf("%v\n", err))
 			return err
 		}
@@ -110,10 +114,10 @@ func doDownload(latestComicNum int) {
 
 		fmt.Printf("\nDownloading #%d of %d...", i, latestComicNum)
 
-		var xkcd *XKCD
+		xkcd := XKCD{}
 		var err error
 
-		if xkcd, err = GetComic(i); xkcd == nil || err != nil {
+		if err = xkcd.GetComic(i); err != nil {
 			ShowVerbose(fmt.Sprintf("Error getting commic number %d. Skipping!", i))
 			continue
 		}
@@ -124,7 +128,7 @@ func doDownload(latestComicNum int) {
 			}
 		}
 
-		if err := IndexFiles(xkcd, ls); err != nil {
+		if err := IndexFiles(&xkcd, ls); err != nil {
 			fmt.Printf("error: %v", err)
 			continue
 		}
